@@ -18,5 +18,5 @@
 * Windows 10 x64, Education edition
 * Python 3.7.4 64-bit, base Conda
 
-* Settings : 92 days for 124k people
+* Settings : 92 days for 124k people, logs in "WARNING" level (important information only)
 * Result : 50min execution time, 400Mo of logs and a graph.
