@@ -14,6 +14,8 @@ print_console = False
 keep_logs = True
 # Log level can be "DEBUG" (more detailed), "INFO" (normal) or "WARNING" (only important informations are kept)
 log_level = "WARNING"
+# Do you use Jupyter Notebook for executing or not
+jupyterGraph = False
 
 # Create people from 1 to "nb_of_people"
 nb_of_people = 125694

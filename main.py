@@ -484,11 +484,13 @@ def print_graph(grouping):
     ))
     temp_string = "Epidemic evolution with " + str(const.nb_of_people) + " people." 
     fig.update_layout(barmode='stack', title_text=temp_string)
-    # fig.show work only with Jupyter Notebook
-    # (Verified working with the "Python Interactive Window" of VSCode)
-    #fig.show()
-    # Display in you default browser
-    plot(fig)
+    if (const.jupyterGraph):
+        # fig.show work only with Jupyter Notebook
+        # (Verified working with the "Python Interactive Window" of VSCode)
+        fig.show()
+    else:
+        # Display in you default browser as html file
+        plot(fig)
 
 
 # ------------------------------ STARTUP --------------------------------------
