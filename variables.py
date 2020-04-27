@@ -8,6 +8,8 @@ Created on Mon Mar 23 10:41:59 2020
 from math import floor
 from random import randint
 
+# --------------------------- VARIABLES TO CHANGE ------------------------------------
+
 print_console = False
 keep_logs = True
 # Log level can be "DEBUG" (more detailed), "INFO" (normal) or "WARNING" (only important informations are kept)
@@ -59,6 +61,9 @@ immunity_ri_start = 20
 # If a person heal from the disease and immunity_random_increase is False, his immunity is increased flatly by this amount.
 # Else, look at immunity_random_increase description
 immunity_increase = 50
+
+
+# --------------------------- DO NOT CHANGE ------------------------------------
 
 
 def getMaxChancesGoingOutside():
