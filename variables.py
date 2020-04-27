@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Mar 23 10:41:59 2020
+Document formated using VSCode default document formatting.
 
 @author: DhalEynn
 """
@@ -68,6 +69,20 @@ immunity_increase = 50
 # --------------------------- DO NOT CHANGE ------------------------------------
 
 
+def getStartSick():
+    global start_sick
+    if (start_sick < 1):
+        start_sick = 1
+    return int(start_sick)
+
+
+def getAverageEncountersTime():
+    global average_time_of_encounters
+    if (average_time_of_encounters < 1):
+        average_time_of_encounters = 1
+    return int(average_time_of_encounters)
+
+
 def getMaxChancesGoingOutside():
     global max_chances_going_outside
     if (max_chances_going_outside > 100):
@@ -113,7 +128,8 @@ def getHoursBeforeInfectious():
 
 def getTimeIncubating():
     global time_incubating
-    temp_incubating = [min(time_incubating[0], time_incubating[1]), max(time_incubating[0], time_incubating[1])]
+    temp_incubating = [min(time_incubating[0], time_incubating[1]), max(
+        time_incubating[0], time_incubating[1])]
     if (temp_incubating[0] < 0):
         temp_incubating[0] = 0
     if (temp_incubating[1] < 0):
@@ -143,6 +159,7 @@ def getImmunity():
 
 
 def getIncreasedImmunity(old_immunity):
+    """Increase the value of the input like it is documented for "immunity_increase" in variables.py"""
     if (old_immunity >= 100):
         return 100
     global immunity_ri_start, immunity_increase, immunity_random_increase
@@ -159,9 +176,9 @@ def getIncreasedImmunity(old_immunity):
 
 
 # Number of days of the experience
-lenght_experiment = number_of_months * 30 + \
-    floor(number_of_months / 2) + \
-    number_of_days
+lenght_experiment = abs(number_of_months * 30 +
+                        floor(number_of_months / 2) +
+                        number_of_days)
 
 
 if (time_before_infectious < 0):

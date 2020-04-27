@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Mar 23 08:03:50 2020
+Document formated using VSCode default document formatting.
 
 @author: DhalEynn
 """
 
 import simpy
-#import sys
 import time
 import logging
 import os
@@ -20,6 +20,8 @@ from math import ceil
 
 
 class Person(object):
+    """The class representing a Person"""
+
     def __init__(self, name):
         self.name = name
 
@@ -59,6 +61,7 @@ class Person(object):
         self.time_until_coming_back = 0
 
     def __str__(self):
+        """Print and object of the class as a list of variables with their content. Replace classical str."""
         temp_vars_str = vars(self)
         temp_print_str = ""
         for item in temp_vars_str:
@@ -69,8 +72,9 @@ class Person(object):
                 temp_print_str += "  " + \
                     str(item) + " : " + str(temp_vars_str[item]) + '\n'
         return temp_print_str
-    
+
     def littleStr(self):
+        """Reduced str for logging purposes."""
         return " Name : " + str(self.name) + " Is sick : " + str(self.is_sick)
 
 
@@ -78,12 +82,15 @@ class Person(object):
 
 
 class People(object):
+    """The most important class, representing "the World" and containing all the Person"""
 
     def printArray(self, people):
+        """Print an array of Person"""
         for person in people:
             print(str(person))
 
     def printNameForArray(self, people):
+        """Print the name of all Person in an array"""
         for person in people:
             print(str(person.name))
 
@@ -105,7 +112,7 @@ class People(object):
         self.nb_sick = 0
         self.nb_dead = 0
         # Make some people sick
-        for person in sample(self.people, const.start_sick):
+        for person in sample(self.people, const.getStartSick()):
             person.is_sick = True
             self.nb_sick += 1
 
@@ -178,9 +185,8 @@ class People(object):
 
     # ------------------------ ENCOUNTERS ---------------------------------
 
-    # Should the person go back to his house
-
     def shouldGoBackHome(self, person):
+        """Should the person go back to his house ?"""
         if (person.is_outside == True):
             person.time_until_coming_back -= 1
             if (person.time_until_coming_back <= 0):
@@ -194,10 +200,11 @@ class People(object):
                     self.time, person.name, person.time_until_coming_back), "debug")
 
     def isEncountering(self, person1, person2):
+        """Function managing the encounters between two Person"""
         person1.is_outside = True
         person2.is_outside = True
 
-        time_of_encounter = const.average_time_of_encounters + randint(-1, 1)
+        time_of_encounter = const.getAverageEncountersTime() + randint(-1, 1)
         if (time_of_encounter < 1):
             time_of_encounter = 1
         person1.time_until_coming_back = time_of_encounter
@@ -208,10 +215,12 @@ class People(object):
         self.shouldContaminate(person1, person2)
 
     def easyEncounters(self):
+        """Function that brings together all the people contained in the dynamic_available array."""
         while (len(self.dynamic_available) > 1):
             two_people = sample(range(len(self.dynamic_available)), 2)
             two_people.sort()
-            self.isEncountering(self.dynamic_available[two_people[0]], self.dynamic_available[two_people[1]])
+            self.isEncountering(
+                self.dynamic_available[two_people[0]], self.dynamic_available[two_people[1]])
             del self.dynamic_available[two_people[1]]
             del self.dynamic_available[two_people[0]]
         if (len(self.dynamic_available) == 1):
@@ -219,11 +228,13 @@ class People(object):
                     (self.time, self.dynamic_available[0].name), "debug")
 
     def hardEncounters(self):
-        print("Hard encounters")  # Fonction a créer
+        """Function that brings together people contained in the dynamic_available array and the rest of the Person."""
+        print("Hard encounters")  # TODO Create a function that use dynamic_available and an available state of a person to make encounters.
 
     # ------------------------ SICKNESS ---------------------------------
 
     def isInfectious(self, person):
+        """Function managing the infectivity of a sick Person."""
         if (person.is_sick == True and person.is_infectious == False):
             if (person.time_before_infectious < 1):
                 logText('at %s, %s can now transmit the disease.' %
@@ -235,8 +246,10 @@ class People(object):
                 person.time_before_infectious -= 1
 
     def shouldContaminate(self, person1, person2):
+        """Function managing possible contamination of a Person during an encounter between two Person."""
         if (not (person1.is_sick == True and person2.is_sick == True) and (person1.is_sick == True or person2.is_sick == True)):
-            if (person1.is_infectious == True or person2.is_infectious == True):  # Is the sick person infectious ?
+            # Is the sick person infectious ?
+            if (person1.is_infectious == True or person2.is_infectious == True):
                 rand_chance_to_be_contaminated = randint(0, 100)
                 if (person1.is_infectious == True and person2.is_sick == False):
                     # Has person1 transmited the disease (via speaking, touching, etc) to person 2 ?
@@ -245,19 +258,26 @@ class People(object):
                         if (randint(0, 100) < person2.immunity_chances):
                             person2.is_sick = True
                             self.nb_sick += 1
-                            logText("at %s, %s has been contaminated by %s." % (self.time, person2.name, person1.name), "info")
-                            logText('at %s, %s is now sick.' % (self.time, person2.name), "warn")
-                            logText('at %s, nb_sick : %d' % (self.time, self.nb_sick), "warn")
+                            logText("at %s, %s has been contaminated by %s." % (
+                                self.time, person2.name, person1.name), "info")
+                            logText('at %s, %s is now sick.' %
+                                    (self.time, person2.name), "warn")
+                            logText('at %s, nb_sick : %d' %
+                                    (self.time, self.nb_sick), "warn")
                 if (person2.is_infectious == True and person1.is_sick == False):
                     if (rand_chance_to_be_contaminated < person2.infectuosity):
                         if (randint(0, 100) < person1.immunity_chances):
                             person1.is_sick = True
                             self.nb_sick += 1
-                            logText("at %s, %s has been contaminated by %s." % (self.time, person1.name, person2.name), "info")
-                            logText('at %s, %s is now sick.' % (self.time, person1.name), "warn")
-                            logText('at %s, nb_sick : %d' % (self.time, self.nb_sick), "warn")
+                            logText("at %s, %s has been contaminated by %s." % (
+                                self.time, person1.name, person2.name), "info")
+                            logText('at %s, %s is now sick.' %
+                                    (self.time, person1.name), "warn")
+                            logText('at %s, nb_sick : %d' %
+                                    (self.time, self.nb_sick), "warn")
 
     def hasIncubated(self, person):
+        """Function managing the disease incubation of a sick Person."""
         if (person.is_sick == True and person.has_incubated == False):
             if (person.time_incubating < 1):
                 logText('at %s, %s disease has now incubated' %
@@ -271,6 +291,7 @@ class People(object):
                 person.time_incubating -= 1
 
     def shouldHeal(self, person):
+        """Function managing the healing treatment of a sick Person."""
         if (person.is_sick == True and person.has_incubated == True):
             if (person.hours_before_possible_healing > 0 and person.hours_before_possible_healing != -1):
                 person.hours_before_possible_healing -= 1
@@ -284,22 +305,27 @@ class People(object):
                     person.is_infectious = False
                     person.has_incubated = False
                     self.nb_sick -= 1
-                    logText('at %s, nb_sick : %d' % (self.time, self.nb_sick), "warn")
+                    logText('at %s, nb_sick : %d' %
+                            (self.time, self.nb_sick), "warn")
                     person.hours_before_new_check = -1
                     person.hours_before_possible_healing = -1
-                    person.immunity_chances = const.getIncreasedImmunity(person.immunity_chances)
+                    person.immunity_chances = const.getIncreasedImmunity(
+                        person.immunity_chances)
                     person.time_before_infectious = const.getHoursBeforeInfectious()
                     person.time_incubating = const.getTimeIncubating()
 
     def shouldDie(self, person):
+        """Function managing the risk of death of a sick Person."""
         if (person.is_sick == True):
             rand_chance_to_die = randint(0, 100)
             if (rand_chance_to_die < person.chances_to_die):
-                logText('at %s, %s died from the disease.' % (self.time, person.name), "warn")
+                logText('at %s, %s died from the disease.' %
+                        (self.time, person.name), "warn")
                 return True
         return False
-    
+
     def advenceCheck(self, person):
+        """Function managing the time before a death check for a Person."""
         if (person.hours_before_new_check == 0):
             person.hours_before_new_check = 24
         if (person.hours_before_new_check != -1):
@@ -308,6 +334,7 @@ class People(object):
     # ------------------------ OTHER ---------------------------------
 
     def isAvailable(self, person):
+        """Function managing the availability of a Person."""
         if (person.is_sleeping == True):
             return False
         if (person.is_outside == True):
@@ -319,6 +346,7 @@ class People(object):
         return True
 
     def detailedActions(self, person):
+        """Function managing the actions of an available Person."""
         if (self.isAvailable(person)):
             # Look if the person want to go to sleep
             if (randint(0, 100) < self.sleepChances(person)):
@@ -332,19 +360,22 @@ class People(object):
             else:
                 logText("at %s, %s is staying at home for now." %
                         (self.time, person.name), "info")
-    
+
     def dailyCounter(self):
         """What is done "daily", as in each 24 hours."""
         global temp_time
         if (self.env.now % (24) == 0):
-            print("Elapsed real time : %s" % str(timedelta(seconds=(time.time() - temp_time))))
+            print("Elapsed real time : %s" %
+                  str(timedelta(seconds=(time.time() - temp_time))))
             temp_time = time.time()
             print("Timeline : %s" % str(self.time))
-            self.graph_array.append({"day" : int(self.env.now / 24), "healthy_people" : const.nb_of_people - self.nb_dead - self.nb_sick, "deaths" : self.nb_dead, "sick" : self.nb_sick})
+            self.graph_array.append({"day": int(self.env.now / 24), "healthy_people": const.nb_of_people -
+                                     self.nb_dead - self.nb_sick, "deaths": self.nb_dead, "sick": self.nb_sick})
 
     # ------------------------ MAIN ---------------------------------
 
     def run(self):
+        """Main function of the class."""
         while True:
             self.time = timedelta(hours=self.env.now)
 
@@ -353,7 +384,8 @@ class People(object):
             # If nobody is sick anymore, the disease has been eradicated
             if (self.nb_sick <= 0):
                 print("at %s, the disease has been eradicated." % (self.time))
-                logText("at %s, the disease has been eradicated." % (self.time), "warn")
+                logText("at %s, the disease has been eradicated." %
+                        (self.time), "warn")
                 while True:
                     self.dailyCounter()
                     # Advance the time of the simulation by one hour
@@ -373,7 +405,8 @@ class People(object):
                             alive = False
                             self.nb_dead += 1
                             self.nb_sick -= 1
-                            logText('at %s, nb_sick : %d' % (self.time, self.nb_sick), "warn")
+                            logText('at %s, nb_sick : %d' %
+                                    (self.time, self.nb_sick), "warn")
                 if(alive):
                     self.shouldHeal(person)
                     self.isInfectious(person)
@@ -382,7 +415,7 @@ class People(object):
                     self.shouldAwaken(person)
                     self.shouldGoBackHome(person)
                     self.detailedActions(person)
-                
+
             if (len(self.dead_people) != 0):
                 self.people = difference_lists(self.people, self.dead_people)
 
@@ -399,7 +432,7 @@ class People(object):
 
 
 def logText(text, log_type):
-    """Log function, with log type input"""
+    """Log function, with logging type input"""
     if(const.print_console):
         print(str(text))
     if(const.keep_logs):
@@ -414,6 +447,7 @@ def logText(text, log_type):
 
 
 def writeArray(people, log_type):
+    """Function for logging an array of Person with log type input"""
     if (const.nb_of_people < 1000):
         for person in people:
             logText(str(person), log_type)
@@ -424,7 +458,7 @@ def writeArray(people, log_type):
 
 def difference_lists(first, second):
     """Function that return the difference between 2 lists.
-    
+
     This function will return the difference between two lists, first and second.
     More exaustively, it will return a list of all the items that are in the first list
     and aren't in the second list.
@@ -435,12 +469,14 @@ def difference_lists(first, second):
     second = set(second)
     return [item for item in first if item not in second]
 
+
 def percentPeople(value):
-    """Return the percentage that value represent in all the people"""
+    """Return the percentage that the input value represent in the number of people"""
     return (value * 100) / const.nb_of_people
 
+
 def print_graph(grouping):
-    """Function that print the evolution of the disease."""
+    """Function that print the evolution of the disease as a Plotly Graph."""
     list_days = []
     list_people = []
     hover_people = []
@@ -452,37 +488,41 @@ def print_graph(grouping):
     for item in grouping:
         list_days.append(item["day"])
         list_people.append(item["healthy_people"])
-        hover_people.append("Day " + str(item["day"]) + ", " + str(item["healthy_people"]) + " (" + str(percentPeople(item["healthy_people"])) + "%) healthy people.")
+        hover_people.append("Day " + str(item["day"]) + ", " + str(item["healthy_people"]) + " (" + str(
+            percentPeople(item["healthy_people"])) + "%) healthy people.")
         list_death.append(item["deaths"])
-        hover_death.append("Day " + str(item["day"]) + ", " + str(item["deaths"]) +  " (" + str(percentPeople(item["deaths"])) + "%) dead people.")
+        hover_death.append("Day " + str(item["day"]) + ", " + str(
+            item["deaths"]) + " (" + str(percentPeople(item["deaths"])) + "%) dead people.")
         list_sick.append(item["sick"])
-        hover_sick.append("Day " + str(item["day"]) + ", " + str(item["sick"]) + " (" + str(percentPeople(item["sick"])) + "%) sick people.")
-    
+        hover_sick.append("Day " + str(item["day"]) + ", " + str(
+            item["sick"]) + " (" + str(percentPeople(item["sick"])) + "%) sick people.")
+
     from plotly.offline import plot
     import plotly.graph_objects as go
     fig = go.Figure()
     fig.add_trace(go.Bar(
         x=list_days,
         y=list_death,
-        hovertext = hover_death,
+        hovertext=hover_death,
         name="Dead people",
-        marker_color = 'rgb(0, 0, 0)'
+        marker_color='rgb(0, 0, 0)'
     ))
     fig.add_trace(go.Bar(
         x=list_days,
         y=list_sick,
-        hovertext = hover_sick,
+        hovertext=hover_sick,
         name="Sick people",
-        marker_color = 'rgb(255, 0, 0)'
+        marker_color='rgb(255, 0, 0)'
     ))
     fig.add_trace(go.Bar(
         x=list_days,
         y=list_people,
-        hovertext = hover_people,
+        hovertext=hover_people,
         name="Healthy people",
-        marker_color = 'rgb(180, 180, 180)'
+        marker_color='rgb(180, 180, 180)'
     ))
-    temp_string = "Epidemic evolution with " + str(const.nb_of_people) + " people." 
+    temp_string = "Epidemic evolution with " + \
+        str(const.nb_of_people) + " people."
     fig.update_layout(barmode='stack', title_text=temp_string)
     if (const.jupyterGraph):
         # fig.show work only with Jupyter Notebook
