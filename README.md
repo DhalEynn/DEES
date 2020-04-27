@@ -23,8 +23,14 @@
 * Windows 10 x64, Education edition
 * Python 3.7.4 64-bit, base Conda
 
+
 * Settings : 92 days for 50000 people, 500 sick people, 2% death rate, 90% healing chances, easy encounters, no logs
 * Result : 6.30min execution time, a graph. Disease eradicated at 54 days, 19865 healthy people, 29895 immune people (100% immunity), 0 sick people, 240 dead people.
 
+
 * Settings : 92 days for 50000 people, 5000 sick people, 2% death rate, 90% healing chances, easy encounters, no logs
 * Result : 5.51min execution time, a graph. Disease eradicated at 51 days, 19276 healthy people, 30470 immune people (100% immunity), 0 sick people, 254 dead people.
+
+
+* Settings : 92 days for 50000 people, 5000 sick people, 2% death rate, 90% healing chances, hard encounters, no logs
+* Result : 1h 12min execution time, a graph. 41007 healthy people, 8877 immune people (100% immunity), 3 sick people, 113 dead people.
