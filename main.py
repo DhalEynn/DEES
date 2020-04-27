@@ -111,6 +111,7 @@ class People(object):
         # Create the variables for the graphs
         self.nb_sick = 0
         self.nb_dead = 0
+        self.nb_immune = 0
         # Make some people sick
         for person in sample(self.people, const.getStartSick()):
             person.is_sick = True
@@ -228,8 +229,26 @@ class People(object):
                     (self.time, self.dynamic_available[0].name), "debug")
 
     def hardEncounters(self):
-        """Function that brings together people contained in the dynamic_available array and the rest of the Person."""
-        print("Hard encounters")  # TODO Create a function that use dynamic_available and an available state of a person to make encounters.
+        """Function that try to bring together one person taken from the dynamic_available array and one person from the rest of the People."""
+        self.dynamic_available.sort(key=lambda x: x.name)
+        while (len(self.dynamic_available) > 1):
+            one_available_person = sample(self.dynamic_available, 1)[0]
+            random_person = sample(self.people, 1)[0]
+            while (one_available_person == random_person):
+                random_person = sample(self.people, 1)[0]
+            if (random_person in self.dynamic_available):
+                two_people = [one_available_person, random_person]
+                two_people.sort(key=lambda x: x.name)
+                self.isEncountering(two_people[0], two_people[1])
+                self.dynamic_available.remove(two_people[1])
+                self.dynamic_available.remove(two_people[0])
+            else:
+                logText("at %s, %s encountered no one when going out" %
+                        (self.time, one_available_person.name), "debug")
+                self.dynamic_available.remove(one_available_person)
+        if (len(self.dynamic_available) == 1):
+            logText("at %s, %s encountered no one when going out" %
+                    (self.time, self.dynamic_available[0].name), "debug")
 
     # ------------------------ SICKNESS ---------------------------------
 
@@ -254,8 +273,9 @@ class People(object):
                 if (person1.is_infectious == True and person2.is_sick == False):
                     # Has person1 transmited the disease (via speaking, touching, etc) to person 2 ?
                     if (rand_chance_to_be_contaminated < person1.infectuosity):
-                        # Has person2 been contaminated by person 1 or has person2 immunity stopped contamination
-                        if (randint(0, 100) < person2.immunity_chances):
+                        # Has person2 been contaminated by person 1 or has person2 immunity stopped contamination.
+                        # Since Immunity is an INCREASING value, we need to test if the random value is above the immunity.
+                        if (randint(0, 100) > person2.immunity_chances):
                             person2.is_sick = True
                             self.nb_sick += 1
                             logText("at %s, %s has been contaminated by %s." % (
@@ -266,7 +286,7 @@ class People(object):
                                     (self.time, self.nb_sick), "warn")
                 if (person2.is_infectious == True and person1.is_sick == False):
                     if (rand_chance_to_be_contaminated < person2.infectuosity):
-                        if (randint(0, 100) < person1.immunity_chances):
+                        if (randint(0, 100) > person1.immunity_chances):
                             person1.is_sick = True
                             self.nb_sick += 1
                             logText("at %s, %s has been contaminated by %s." % (
@@ -311,6 +331,8 @@ class People(object):
                     person.hours_before_possible_healing = -1
                     person.immunity_chances = const.getIncreasedImmunity(
                         person.immunity_chances)
+                    if (person.immunity_chances == 100):
+                        self.nb_immune += 1
                     person.time_before_infectious = const.getHoursBeforeInfectious()
                     person.time_incubating = const.getTimeIncubating()
 
@@ -370,7 +392,7 @@ class People(object):
             temp_time = time.time()
             print("Timeline : %s" % str(self.time))
             self.graph_array.append({"day": int(self.env.now / 24), "healthy_people": const.nb_of_people -
-                                     self.nb_dead - self.nb_sick, "deaths": self.nb_dead, "sick": self.nb_sick})
+                                     self.nb_dead - self.nb_sick - self.nb_immune, "immune": self.nb_immune, "deaths": self.nb_dead, "sick": self.nb_sick})
 
     # ------------------------ MAIN ---------------------------------
 
@@ -387,6 +409,7 @@ class People(object):
                 logText("at %s, the disease has been eradicated." %
                         (self.time), "warn")
                 while True:
+                    self.time = timedelta(hours=self.env.now)
                     self.dailyCounter()
                     # Advance the time of the simulation by one hour
                     yield self.env.timeout(1)
@@ -480,6 +503,8 @@ def print_graph(grouping):
     list_days = []
     list_people = []
     hover_people = []
+    list_immune = []
+    hover_immune = []
     list_death = []
     hover_death = []
     list_sick = []
@@ -490,6 +515,9 @@ def print_graph(grouping):
         list_people.append(item["healthy_people"])
         hover_people.append("Day " + str(item["day"]) + ", " + str(item["healthy_people"]) + " (" + str(
             percentPeople(item["healthy_people"])) + "%) healthy people.")
+        list_immune.append(item["immune"])
+        hover_immune.append("Day " + str(item["day"]) + ", " + str(item["immune"]) + " (" + str(
+            percentPeople(item["immune"])) + "%) immunised people.")
         list_death.append(item["deaths"])
         hover_death.append("Day " + str(item["day"]) + ", " + str(
             item["deaths"]) + " (" + str(percentPeople(item["deaths"])) + "%) dead people.")
@@ -513,6 +541,13 @@ def print_graph(grouping):
         hovertext=hover_sick,
         name="Sick people",
         marker_color='rgb(255, 0, 0)'
+    ))
+    fig.add_trace(go.Bar(
+        x=list_days,
+        y=list_immune,
+        hovertext=hover_immune,
+        name="Immune people",
+        marker_color='rgb(0, 255, 0)'
     ))
     fig.add_trace(go.Bar(
         x=list_days,
