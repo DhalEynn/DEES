@@ -12,19 +12,19 @@ from random import randint
 # --------------------------- VARIABLES TO CHANGE ------------------------------------
 
 print_console = False
-keep_logs = True
+keep_logs = False
 # Log level can be "DEBUG" (more detailed), "INFO" (normal) or "WARNING" (only important informations are kept)
 log_level = "WARNING"
 # Do you use Jupyter Notebook for executing or not
 jupyterGraph = False
 
 # Create people from 1 to "nb_of_people"
-nb_of_people = 125694
+nb_of_people = 50000
 # Duration of the experiment
 number_of_months = 3
 number_of_days = 1
 # number of people who are sick at start
-start_sick = 50
+start_sick = 5000
 
 # Sleeping time for people
 sleepTime = 8
@@ -32,9 +32,9 @@ sleepTime = 8
 # Average time for an encounter between 2 people, in hours
 average_time_of_encounters = 3
 # Are encounters hard ?
-# False : easy encounters, people are forced to encounters others
-# True  : hard encounters, people can encounter nobody when outside
-hard_encounters = False
+# False : easy encounters, people are only trying to encounter others available people
+# True  : hard encounters, people will try to encounter everybody when outside, even people not available
+hard_encounters = True
 # Percentage of chances of someone available want to go outside
 # Used as : if between 0 and max_chances_going_outside  -> go outside
 #           if between 61 and max_chances_going_outside -> keep inside for an hour
@@ -58,21 +58,23 @@ days_before_possible_healing = 0
 healing_chances = 90
 # The immunity of a person to the disease is first taken at random between these bounds.
 immunity_bounds = [0, 100]
-# If True, randomly increase the immunity of a healed person with a value between immunity_ri_start and immunity_ri_start + immunity_increase.
-immunity_random_increase = False
+# If True, randomly increase the immunity of a healed person with a value between immunity_ri_start and immunity_ri_start + immunity_modifier.
+immunity_random_increase = True
 immunity_ri_start = 20
 # If a person heal from the disease and immunity_random_increase is False, his immunity is increased flatly by this amount.
 # Else, look at immunity_random_increase description
-immunity_increase = 50
+immunity_modifier = 50
 
 
 # --------------------------- DO NOT CHANGE ------------------------------------
 
 
 def getStartSick():
-    global start_sick
+    global start_sick, nb_of_people
     if (start_sick < 1):
         start_sick = 1
+    if (start_sick > nb_of_people):
+        start_sick = floor(nb_of_people * 0.01)
     return int(start_sick)
 
 
@@ -159,15 +161,15 @@ def getImmunity():
 
 
 def getIncreasedImmunity(old_immunity):
-    """Increase the value of the input like it is documented for "immunity_increase" in variables.py"""
+    """Increase the value of the input like it is documented for "immunity_modifier" in variables.py"""
     if (old_immunity >= 100):
         return 100
-    global immunity_ri_start, immunity_increase, immunity_random_increase
+    global immunity_ri_start, immunity_modifier, immunity_random_increase
     if (immunity_random_increase):
         temp = old_immunity + \
-            randint(immunity_ri_start, immunity_ri_start + immunity_increase)
+            randint(immunity_ri_start, immunity_ri_start + immunity_modifier)
     else:
-        temp = old_immunity + immunity_increase
+        temp = old_immunity + immunity_modifier
     if (temp > 100):
         temp = 100
     if (temp < 0):
